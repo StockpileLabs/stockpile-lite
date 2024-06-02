@@ -1,5 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_sdk::{clock::Clock, pubkey::Pubkey};
+use solana_program::{sysvar::Sysvar, clock::Clock};
+use solana_sdk::pubkey::Pubkey;
 
 use crate::error::StockpileError;
 
@@ -33,8 +34,18 @@ impl Pool {
         admins: Vec<Pubkey>, 
         access: PoolAccess, 
         bump: u8
-    ) -> Self {
-        Self {
+    ) -> Result<Self, StockpileError> {
+        if name.as_bytes().len() > Self::MAX_NAME_LEN {
+            return Err(StockpileError::DefaultError.into());
+        }
+
+        let current = Clock::get().unwrap();
+        let timestamp = current.unix_timestamp as u64;
+        if timestamp > start {
+            return Err(StockpileError::DefaultError.into());
+        }
+
+        Ok(Self {
             name,
             start,
             end,
@@ -43,22 +54,24 @@ impl Pool {
             pool_state: PoolState::PendingStart,
             pool_access: access,
             bump,
-        }
+        })
     }
 
     pub fn is_active(&mut self) -> Result<(), StockpileError> {
-        let current_time = Clock::get()?.unix_timestamp as u64;
-        if current_time > self.end {
+        let current = Clock::get().unwrap();
+        let timestamp = current.unix_timestamp as u64;
+        if timestamp > self.end {
             return Err(StockpileError::DefaultError.into());
         }
-        if current_time > self.start {
+
+        if timestamp > self.start {
             self.pool_state = PoolState::Active;
         }
+
         match self.pool_state {
             PoolState::PendingStart => Err(StockpileError::DefaultError.into()),
             PoolState::Active => Ok(()),
             PoolState::Distributed => Err(StockpileError::DefaultError.into()),
-            PoolState::Closed => Err(StockpileError::DefaultError.into()),
         }
     }
 }
