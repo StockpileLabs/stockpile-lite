@@ -1,0 +1,26 @@
+[package]
+name = "stockpile-lite"
+version = "0.1.0"
+edition = "2021"
+license = "WTFPL"
+publish = false
+
+[dependencies]
+borsh = "0.10.3"
+borsh-derive = "1.5.1"
+solana-program = "=1.16.1"
+solana-sdk = "=1.16.1"
+thiserror = "1.0.61"
+
+[features]
+test-bpf = []
+
+[dev-dependencies]
+assert_matches = "1.4.0"
+solana-logger = "=1.16.1"
+solana-program-test = "=1.16.1"
+solana-sdk = "=1.16.1"
+solana-validator = "=1.16.1"
+
+[lib]
+crate-type = ["cdylib", "lib"]
