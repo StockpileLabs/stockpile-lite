@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{sysvar::Sysvar, clock::Clock};
-use solana_sdk::pubkey::Pubkey;
+use solana_program::pubkey::Pubkey;
 
 use crate::error::StockpileError;
 
@@ -9,32 +9,40 @@ pub struct Pool {
     pub name: String,
     pub start: u64,
     pub end: u64,
+    pub mint: Pubkey,
     pub admins: Vec<Pubkey>,
     // Vector of keys that point to Participant accounts
     pub participants: Vec<Pubkey>,
     pub pool_state: PoolState,
     pub pool_access: PoolAccess,
     pub sybil_strategy: SybilStrategy,
+    pub table_index: u8,
     pub bump: u8,
 }
 
 impl Pool {
     pub const SEED_PREFIX: &'static str = "pool";
     pub const MAX_NAME_LEN: usize = 64;
+    pub const MAX_ADMINS: usize = 5;
+    pub const MAX_PARTICIPANTS: usize = 32;
 
-    pub const SPACE: usize = 64  // Name
-    + 8                         // u64
-    + 8                         // u64
-    + 32                        // Vec<Pubkey>: Max 5
-    + 32                        // Vec<Pubkey>
-    + 8                         // u64
-    + 4                         // u32
-    + 4;                        // u32
+    pub const SPACE: usize = Self::MAX_NAME_LEN  // Name
+    + 8                                          // u64
+    + 8                                          // u64
+    + (32 * Self::MAX_ADMINS)                    // Vec<Pubkey>: Max 5
+    + (32 * Self::MAX_PARTICIPANTS)              // Vec<Pubkey>: Max 32
+    + 1                                          // Enum (Singleton)
+    + 4                                          // Enum
+    + 1                                          // Enum
+    + 1                                          // u8
+    + 1                                          // u8
+    + 128;                                       // Padding
 
     pub fn new(
         name: String, 
         start: u64, 
         end: u64, 
+        mint: Pubkey,
         admins: Vec<Pubkey>, 
         access: PoolAccess, 
         sybil: SybilStrategy,
@@ -54,11 +62,13 @@ impl Pool {
             name,
             start,
             end,
+            mint,
             admins,
             participants: vec![],
             pool_state: PoolState::PendingStart,
             pool_access: access,
             sybil_strategy: sybil,
+            table_index: 0,
             bump,
         })
     }
@@ -107,13 +117,19 @@ impl Default for PoolState {
 pub enum PoolAccess {
     Open,
     Manual,
-    TokenGated,
+    TokenGated(TokenGateInfo),
 }
 
 impl Default for PoolAccess {
     fn default() -> Self {
         PoolAccess::Manual
     }
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug)]
+pub struct TokenGateInfo {
+    pub mint: Pubkey,
+    pub minimum_balance: u64
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]

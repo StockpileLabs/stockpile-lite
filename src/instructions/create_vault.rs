@@ -1,4 +1,4 @@
-use borsh::BorshSerialize;
+use borsh::{BorshSerialize, BorshDeserialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
@@ -11,6 +11,11 @@ use solana_program::{
 
 use crate::state::Vault;
 
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct CreateVaultArgs {
+    pub vault: Vault,
+}
+
 /*
 ** Initializes a vault as a proxy account **
 Recommended to use a Squads multisig as the main "vault_account" field.
@@ -18,7 +23,7 @@ Recommended to use a Squads multisig as the main "vault_account" field.
 pub fn create_vault(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    vault: Vault,
+    args: CreateVaultArgs,
 ) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
 
@@ -44,11 +49,11 @@ pub fn create_vault(
         &[&[
             Vault::SEED_PREFIX.as_bytes(),
             payer.key.as_ref(),
-            &[vault.bump],
+            &[args.vault.bump],
         ]],
     )?;
 
-    vault.serialize(&mut &mut vault_account.data.borrow_mut()[..])?;
+    args.vault.serialize(&mut &mut vault_account.data.borrow_mut()[..])?;
 
     Ok(())
 }

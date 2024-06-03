@@ -7,25 +7,28 @@ use solana_program::{
     rent::Rent,
     system_instruction,
     sysvar::Sysvar,
-    program_error::ProgramError
+    program_error::ProgramError,
+    program_pack::Pack
 };
-use solana_program::msg;
+
+use spl_token::state::Account;
 
 use crate::state::{AcceptanceStatus, Participant, Pool, PoolAccess};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct JoinPoolArgs {
+pub struct JoinPoolWithTokenArgs {
     pub participant: Participant,
 }
 
 /*
 ** Joins a pool & creates a participant account **
-Handles for "Open" and "Manual" approval options.
+Must be called if pool entry is token gated. Requires ownership of 
+a specific token, and minimum balance threshold to be met.
 */
-pub fn join_pool(
+pub fn join_pool_with_token(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    args: JoinPoolArgs,
+    args: JoinPoolWithTokenArgs
 ) -> ProgramResult {
     let mut participant_info = Participant::new(
         args.participant.pool_id, 
@@ -36,6 +39,8 @@ pub fn join_pool(
 
     let participant_account = next_account_info(accounts_iter).unwrap();
     let pool_account = next_account_info(accounts_iter).unwrap();
+    // let token_mint = next_account_info(accounts_iter).unwrap();
+    let token_account = next_account_info(accounts_iter).unwrap();
     let payer = next_account_info(accounts_iter).unwrap();
     let system_program = next_account_info(accounts_iter).unwrap();
 
@@ -45,8 +50,34 @@ pub fn join_pool(
     
     pool.is_active().unwrap();
 
-    match pool.pool_access {
-        PoolAccess::Open => {
+    match &mut pool.pool_access {
+        PoolAccess::Open => return Err(ProgramError::BorshIoError("Call join_pool to join.".to_string())),
+        PoolAccess::Manual => return Err(ProgramError::BorshIoError("Call join_pool to request access".to_string())),
+        PoolAccess::TokenGated(info) => {
+            // Unpack token account data from bytes
+            let token_account_info = token_account.data.borrow();
+            let ata = Account::unpack(&token_account_info).unwrap();
+
+            // Validate that the payer owns the token account
+            assert_eq!(
+                token_account.owner,
+                payer.key,
+                "Token Account must be owned by the payer"
+            );
+
+            // Validate that the ATA mint is correct
+            assert_eq!(
+                ata.mint,
+                info.mint,
+                "Token mint must match mint required by pool entry."
+            );
+
+            // Validate that the minimum balance is satisfied
+            assert!(
+                ata.amount >= info.minimum_balance,
+                "Must be holding minimum balance required by pool entry."
+            );
+
             // Create participant account
             invoke_signed(
                 &system_instruction::create_account(
@@ -68,43 +99,12 @@ pub fn join_pool(
                 ]],
             )?;
 
-            // Set status to accepted
             participant_info.status = AcceptanceStatus::Accepted;
             participant_info.serialize(&mut &mut participant_account.data.borrow_mut()[..])?;
 
-            // Add participant
             pool.add_participant(*participant_account.key).unwrap();
             pool.serialize(&mut &mut pool_account.data.borrow_mut()[..])?
-        },
-        // TODO: Create account and prompt approval from an admin
-        PoolAccess::Manual => {
-            // Create participant account
-            invoke_signed(
-                &system_instruction::create_account(
-                    payer.key,
-                    participant_account.key,
-                    rent_minimum,
-                    Participant::SPACE as u64,
-                    program_id,
-                ),
-                &[
-                    payer.clone(),
-                    participant_account.clone(),
-                    system_program.clone(),
-                ],
-                &[&[
-                    Participant::SEED_PREFIX.as_bytes(),
-                    payer.key.as_ref(),
-                    &[participant_info.bump],
-                ]],
-            )?;
-
-            participant_info.serialize(&mut &mut participant_account.data.borrow_mut()[..])?;
-
-            // Notify of pending approval. Pool admin will need to call "accept_participant"
-            msg!("Approval pending to join this pool.");
-        },
-        PoolAccess::TokenGated(_info) => return Err(ProgramError::BorshIoError("Pool requires holding a specific token.".to_string()))
+        }
     };
 
     Ok(())

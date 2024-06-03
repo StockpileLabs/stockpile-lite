@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_sdk::pubkey::Pubkey;
+use solana_program::pubkey::Pubkey;
 
 use crate::error::StockpileError;
 

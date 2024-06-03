@@ -1,12 +1,13 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{sysvar::Sysvar, clock::Clock};
-use solana_sdk::pubkey::Pubkey;
+use solana_program::pubkey::Pubkey;
 
 #[derive(BorshDeserialize, BorshSerialize, Debug, Default)]
 pub struct Participant {
     pub pool_id: Pubkey,
     pub vault_id: Pubkey,
     pub timestamp: u64,
+    pub table_index: u8,
     pub status: AcceptanceStatus,
     pub bump: u8
 }
@@ -21,7 +22,7 @@ impl Participant {
     + 8                         // u64
     + 4                         // u32
     + 4;                        // u32
-    
+
     pub fn new(pool_id: Pubkey, vault_id: Pubkey, bump: u8) -> Self {
         // TODO: add validations if needed (should probably check pool acct infos)
         let current = Clock::get().unwrap();
@@ -31,6 +32,7 @@ impl Participant {
             pool_id,
             vault_id,
             timestamp: time,
+            table_index: 0,
             status: AcceptanceStatus::Pending,
             bump
         }

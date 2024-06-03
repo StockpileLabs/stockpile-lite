@@ -18,9 +18,9 @@ pub fn process_instruction(
 ) -> ProgramResult {
     let instruction = StockpileLite::try_from_slice(input)?;
     match instruction {
-        StockpileLite::CreatePool(data) => create_pool(program_id, accounts, data),
-        StockpileLite::CreateVault(data) => create_vault(program_id, accounts, data),
-        StockpileLite::JoinPool(data) => join_pool(program_id, accounts, data),
+        StockpileLite::CreatePool(data) => create_pool(program_id, accounts, CreatePoolArgs { pool: data }),
+        StockpileLite::CreateVault(data) => create_vault(program_id, accounts, CreateVaultArgs { vault: data }),
+        StockpileLite::JoinPool(data) => join_pool(program_id, accounts, JoinPoolArgs { participant: data }),
         StockpileLite::Refresh() => refresh(program_id, accounts)
     }
 }

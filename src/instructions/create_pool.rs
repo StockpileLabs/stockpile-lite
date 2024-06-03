@@ -1,4 +1,4 @@
-use borsh::BorshSerialize;
+use borsh::{BorshSerialize, BorshDeserialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
@@ -11,6 +11,11 @@ use solana_program::{
 
 use crate::state::Pool;
 
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct CreatePoolArgs {
+    pub pool: Pool,
+}
+
 /*
 **Initializes a QF pool**
 Created with zero balance, so "fund_pool" will need to be called.
@@ -18,7 +23,7 @@ Created with zero balance, so "fund_pool" will need to be called.
 pub fn create_pool(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    pool: Pool,
+    args: CreatePoolArgs,
 ) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
 
@@ -44,11 +49,11 @@ pub fn create_pool(
         &[&[
             Pool::SEED_PREFIX.as_bytes(),
             payer.key.as_ref(),
-            &[pool.bump],
+            &[args.pool.bump],
         ]],
     )?;
 
-    pool.serialize(&mut &mut pool_account.data.borrow_mut()[..])?;
+    args.pool.serialize(&mut &mut pool_account.data.borrow_mut()[..])?;
 
     Ok(())
 }
