@@ -14,6 +14,7 @@ pub struct Pool {
     pub participants: Vec<Pubkey>,
     pub pool_state: PoolState,
     pub pool_access: PoolAccess,
+    pub sybil_strategy: SybilStrategy,
     pub bump: u8,
 }
 
@@ -36,6 +37,7 @@ impl Pool {
         end: u64, 
         admins: Vec<Pubkey>, 
         access: PoolAccess, 
+        sybil: SybilStrategy,
         bump: u8
     ) -> Result<Self, StockpileError> {
         if name.as_bytes().len() > Self::MAX_NAME_LEN {
@@ -56,6 +58,7 @@ impl Pool {
             participants: vec![],
             pool_state: PoolState::PendingStart,
             pool_access: access,
+            sybil_strategy: sybil,
             bump,
         })
     }
@@ -110,5 +113,17 @@ pub enum PoolAccess {
 impl Default for PoolAccess {
     fn default() -> Self {
         PoolAccess::Manual
+    }
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+pub enum SybilStrategy {
+    None,
+    Civic
+}
+
+impl Default for SybilStrategy {
+    fn default() -> Self {
+        SybilStrategy::None
     }
 }
