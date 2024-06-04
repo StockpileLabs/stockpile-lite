@@ -10,7 +10,13 @@ use solana_program::{
     sysvar::Sysvar
 };
 
-use crate::state::{AcceptanceStatus, Participant, Pool, PoolAccess, VoteTable};
+use crate::state::{
+    AcceptanceStatus, 
+    Participant, 
+    Pool, 
+    PoolAccess, 
+    VoteTable
+};
 
 /*
 ** Accepts a participant and creates a vote table for them **

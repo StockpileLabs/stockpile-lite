@@ -11,7 +11,12 @@ use solana_program::{
 };
 use solana_program::msg;
 
-use crate::state::{AcceptanceStatus, Participant, Pool, PoolAccess};
+use crate::state::{
+    AcceptanceStatus, 
+    Participant, 
+    Pool, 
+    PoolAccess
+};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct JoinPoolArgs {

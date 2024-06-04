@@ -13,7 +13,15 @@ use solana_program::{
 
 use spl_token::{state::Account, instruction::transfer};
 
-use crate::state::{AcceptanceStatus, Participant, Pool, SybilStrategy, Vault, VoteTable, VoteTicket};
+use crate::state::{
+    AcceptanceStatus, 
+    Participant, 
+    Pool, 
+    SybilStrategy, 
+    Vault, 
+    VoteTable, 
+    VoteTicket
+};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct ContributeWithVoteArgs {

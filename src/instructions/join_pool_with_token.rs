@@ -13,7 +13,12 @@ use solana_program::{
 
 use spl_token::state::Account;
 
-use crate::state::{AcceptanceStatus, Participant, Pool, PoolAccess};
+use crate::state::{
+    AcceptanceStatus, 
+    Participant, 
+    Pool, 
+    PoolAccess
+};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct JoinPoolWithTokenArgs {
