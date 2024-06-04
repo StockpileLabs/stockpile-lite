@@ -5,10 +5,11 @@ use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, pubke
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub enum StockpileLite {
-    CreatePool(Pool),
-    CreateVault(Vault),
-    JoinPool(Participant),
-    Refresh()
+    CreatePool(CreatePoolArgs),
+    CreateVault(CreateVaultArgs),
+    JoinPool(JoinPoolArgs),
+    Refresh(RefreshArgs),
+    ContributeWithVote(ContributeWithVoteArgs)
 }
 
 pub fn process_instruction(
@@ -18,9 +19,10 @@ pub fn process_instruction(
 ) -> ProgramResult {
     let instruction = StockpileLite::try_from_slice(input)?;
     match instruction {
-        StockpileLite::CreatePool(data) => create_pool(program_id, accounts, CreatePoolArgs { pool: data }),
-        StockpileLite::CreateVault(data) => create_vault(program_id, accounts, CreateVaultArgs { vault: data }),
-        StockpileLite::JoinPool(data) => join_pool(program_id, accounts, JoinPoolArgs { participant: data }),
-        StockpileLite::Refresh() => refresh(program_id, accounts)
+        StockpileLite::CreatePool(data) => create_pool(program_id, accounts, CreatePoolArgs { pool: data.pool }),
+        StockpileLite::CreateVault(data) => create_vault(program_id, accounts, CreateVaultArgs { vault: data.vault }),
+        StockpileLite::JoinPool(data) => join_pool(program_id, accounts, JoinPoolArgs { participant: data.participant }),
+        StockpileLite::Refresh(data) => refresh(program_id, accounts, RefreshArgs { pool: data.pool, participants: data.participants }),
+        StockpileLite::ContributeWithVote(data) => contribute_with_vote(program_id, accounts, ContributeWithVoteArgs { amount: data.amount })
     }
 }

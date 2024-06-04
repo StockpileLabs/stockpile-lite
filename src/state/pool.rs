@@ -11,12 +11,10 @@ pub struct Pool {
     pub end: u64,
     pub mint: Pubkey,
     pub admins: Vec<Pubkey>,
-    // Vector of keys that point to Participant accounts
-    pub participants: Vec<Pubkey>,
     pub pool_state: PoolState,
     pub pool_access: PoolAccess,
     pub sybil_strategy: SybilStrategy,
-    pub table_index: u8,
+    pub participant_index: u8,
     pub bump: u8,
 }
 
@@ -24,13 +22,12 @@ impl Pool {
     pub const SEED_PREFIX: &'static str = "pool";
     pub const MAX_NAME_LEN: usize = 64;
     pub const MAX_ADMINS: usize = 5;
-    pub const MAX_PARTICIPANTS: usize = 32;
+    pub const MAX_PARTICIPANTS: usize = 255;
 
     pub const SPACE: usize = Self::MAX_NAME_LEN  // Name
     + 8                                          // u64
     + 8                                          // u64
     + (32 * Self::MAX_ADMINS)                    // Vec<Pubkey>: Max 5
-    + (32 * Self::MAX_PARTICIPANTS)              // Vec<Pubkey>: Max 32
     + 1                                          // Enum (Singleton)
     + 4                                          // Enum
     + 1                                          // Enum
@@ -64,11 +61,10 @@ impl Pool {
             end,
             mint,
             admins,
-            participants: vec![],
             pool_state: PoolState::PendingStart,
             pool_access: access,
             sybil_strategy: sybil,
-            table_index: 0,
+            participant_index: 0,
             bump,
         })
     }
@@ -89,14 +85,6 @@ impl Pool {
             PoolState::Active => Ok(()),
             PoolState::Distributed => Err(StockpileError::DefaultError.into()),
         }
-    }
-
-    pub fn add_participant(&mut self, participant_account: Pubkey) -> Result<(), StockpileError> {
-        self.participants.push(
-            participant_account
-        );
-
-        Ok(())
     }
 }
 

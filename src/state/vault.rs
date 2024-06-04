@@ -6,7 +6,7 @@ use crate::error::StockpileError;
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
 pub struct Vault {
     pub name: String,
-    pub vault_address: Pubkey,
+    pub authority: Pubkey,
     pub vault_state: VaultState,
     pub bump: u8,
 }
@@ -23,7 +23,7 @@ impl Vault {
 
     pub fn new(
         name: String,
-        vault_address: Pubkey,
+        authority: Pubkey,
         bump: u8
     ) -> Result<Self, StockpileError> {
         if name.as_bytes().len() > Self::MAX_NAME_LEN {
@@ -32,7 +32,7 @@ impl Vault {
 
         Ok(Self {
             name,
-            vault_address,
+            authority,
             vault_state: VaultState::Active,
             bump,
         })

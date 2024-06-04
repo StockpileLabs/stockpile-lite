@@ -63,6 +63,8 @@ pub fn join_pool(
                 ],
                 &[&[
                     Participant::SEED_PREFIX.as_bytes(),
+                    pool_account.key.as_ref(),
+                    &pool.participant_index.to_le_bytes(),
                     payer.key.as_ref(),
                     &[participant_info.bump],
                 ]],
@@ -73,7 +75,7 @@ pub fn join_pool(
             participant_info.serialize(&mut &mut participant_account.data.borrow_mut()[..])?;
 
             // Add participant
-            pool.add_participant(*participant_account.key).unwrap();
+            pool.participant_index += 1;
             pool.serialize(&mut &mut pool_account.data.borrow_mut()[..])?
         },
         // TODO: Create account and prompt approval from an admin

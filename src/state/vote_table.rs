@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::{sysvar::Sysvar, clock::Clock};
 use solana_program::pubkey::Pubkey;
 
 use crate::error::StockpileError;
@@ -39,6 +40,26 @@ impl VoteTable {
         })
     }
 
+    pub fn new_with_voter(
+        pool: Pubkey, 
+        participant: Pubkey, 
+        vote: VoteTicket,
+        table_index: u8, 
+        bump: u8,
+    ) -> Result<Self, StockpileError> {
+        let mut map = BTreeMap::new();
+
+        map.insert(0, vote);
+
+        Ok(Self {
+            pool,
+            participant,
+            table: map,
+            index: table_index,
+            bump
+        })
+    }
+
     pub fn is_full(self) -> Result<bool, StockpileError> {
         if self.table.len() == Self::MAX_TABLE_SIZE {
             Ok(true)
@@ -47,9 +68,29 @@ impl VoteTable {
         }
     }
 
-    pub fn add_entry(&mut self, entry: VoteTicket) -> () {
+    pub fn add_entry(&mut self, entry: VoteTicket) -> Result<(), StockpileError> {
         let length = self.table.len() as u8;
-        self.table.insert(length + 1, entry);
+        let mut found_key = None;
+
+        for (key, value) in &mut self.table {
+            if value.voter == entry.voter {
+                found_key = Some(*key);
+                break;
+            }
+        }
+
+        match found_key {
+            Some(key) => {
+                if let Some(vt) = self.table.get_mut(&key) {
+                    vt.amount += entry.amount;
+                }
+                Ok(())
+            },
+            None => {
+                self.table.insert(length + 1, entry);
+                Ok(())
+            }
+        }
     }
 }
 
@@ -71,4 +112,21 @@ pub struct VoteTicket {
     pub amount: u64,
     pub timestamp: u64,
     pub vote_status: VoteStatus,
+}
+
+impl VoteTicket {
+    pub fn new(
+        voter: Pubkey,
+        amount: u64,
+    ) -> Result<Self, StockpileError> {
+        let current = Clock::get().unwrap();
+        let time = current.unix_timestamp as u64;
+
+        Ok(Self {
+            voter,
+            amount,
+            timestamp: time,
+            vote_status: VoteStatus::Valid
+        })
+    }
 }

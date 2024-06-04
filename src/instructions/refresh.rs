@@ -5,6 +5,14 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
+use crate::state::{Participant, Pool};
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct RefreshArgs {
+    pub pool: Pool,
+    pub participants: Vec<Participant>,
+}
+
 /* 
 ** Refreshes vote data for a given pool **
 This is only recommended to be used with smaller pools, as compute bounds
@@ -15,6 +23,8 @@ shares via the client. This will still be verifiable on-chain.
 pub fn refresh(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
+    args: RefreshArgs
 ) -> ProgramResult {
+
     Ok(())
 }
