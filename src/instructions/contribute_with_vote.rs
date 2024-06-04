@@ -31,18 +31,18 @@ pub fn contribute_with_vote(
 ) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
 
-    let participant_account = next_account_info(accounts_iter).unwrap();
-    let pool_account = next_account_info(accounts_iter).unwrap();
-    let vote_table_account = next_account_info(accounts_iter).unwrap();
-    let next_vote_table_account = next_account_info(accounts_iter).unwrap();
-    let mint = next_account_info(accounts_iter).unwrap();
+    let participant_account = next_account_info(accounts_iter)?;
+    let pool_account = next_account_info(accounts_iter)?;
+    let vote_table_account = next_account_info(accounts_iter)?;
+    let next_vote_table_account = next_account_info(accounts_iter)?;
+    let mint = next_account_info(accounts_iter)?;
     // This account will not recieve the tokens directly, only its authority
-    let target_vault = next_account_info(accounts_iter).unwrap();
-    let vault_authority_token_account = next_account_info(accounts_iter).unwrap();
-    let payer = next_account_info(accounts_iter).unwrap();
-    let payer_token_account = next_account_info(accounts_iter).unwrap();
-    let system_program = next_account_info(accounts_iter).unwrap();
-    let token_program = next_account_info(accounts_iter).unwrap();
+    let target_vault = next_account_info(accounts_iter)?;
+    let vault_authority_token_account = next_account_info(accounts_iter)?;
+    let payer = next_account_info(accounts_iter)?;
+    let payer_token_account = next_account_info(accounts_iter)?;
+    let system_program = next_account_info(accounts_iter)?;
+    let token_program = next_account_info(accounts_iter)?;
 
     // Create a vote ticket from args
     let ticket = VoteTicket::new(
@@ -57,7 +57,7 @@ pub fn contribute_with_vote(
 
     // Deserialize payer ATA
     let token_account_info = payer_token_account.data.borrow();
-    let ata = Account::unpack(&token_account_info).unwrap();
+    let ata = Account::unpack(&token_account_info)?;
 
     // Get rent minimum for a new vote table
     let rent_minimum = (Rent::get()?).minimum_balance(VoteTable::SPACE);
@@ -68,40 +68,6 @@ pub fn contribute_with_vote(
         SybilStrategy::Civic => msg!("Civic strategy...")
     }
     // ^^ Actually do something here besides log and eat hot chip
-
-    // Check if the vote_table has been initialized
-    // If not, initialize.
-    if vote_table_account.data_is_empty() == true {
-        let (_table_pda, bump) = Pubkey::find_program_address(
-            &[
-                VoteTable::SEED_PREFIX.as_bytes(),
-                participant_account.key.as_ref(),
-                &participant.table_index.to_le_bytes()
-            ], 
-            program_id
-        );
-
-        invoke_signed(
-            &system_instruction::create_account(
-                payer.key,
-                next_vote_table_account.key,
-                rent_minimum,
-                VoteTable::SPACE as u64,
-                program_id,
-            ),
-            &[
-                payer.clone(),
-                next_vote_table_account.clone(),
-                system_program.clone(),
-            ],
-            &[&[
-                VoteTable::SEED_PREFIX.as_bytes(),
-                participant_account.key.as_ref(),
-                &participant.table_index.to_le_bytes(),
-                &[bump],
-            ]],
-        )?;
-    }
 
     // Validation checks
     assert_eq!(
@@ -161,7 +127,7 @@ pub fn contribute_with_vote(
                 ]],
             )?;
 
-            // Create new instance of vote table, serialize to new account
+            // Create new instance of vote table
             let new_table = VoteTable::new_with_voter(
                 *pool_account.key, 
                 *participant_account.key, 
@@ -199,7 +165,7 @@ pub fn contribute_with_vote(
 
     // Deserialize recipient ATA
     let target_token_account_info = vault_authority_token_account.data.borrow();
-    let target_ata = Account::unpack(&target_token_account_info).unwrap();
+    let target_ata = Account::unpack(&target_token_account_info)?;
 
     // Deserialize vault account
     let target_vault_inner = Vault::try_from_slice(&target_vault.try_borrow_mut_data()?)?;

@@ -9,7 +9,8 @@ pub enum StockpileLite {
     CreateVault(CreateVaultArgs),
     JoinPool(JoinPoolArgs),
     Refresh(RefreshArgs),
-    ContributeWithVote(ContributeWithVoteArgs)
+    ContributeWithVote(ContributeWithVoteArgs),
+    AcceptParticipant()
 }
 
 pub fn process_instruction(
@@ -23,6 +24,7 @@ pub fn process_instruction(
         StockpileLite::CreateVault(data) => create_vault(program_id, accounts, CreateVaultArgs { vault: data.vault }),
         StockpileLite::JoinPool(data) => join_pool(program_id, accounts, JoinPoolArgs { participant: data.participant }),
         StockpileLite::Refresh(data) => refresh(program_id, accounts, RefreshArgs { pool: data.pool, participants: data.participants }),
-        StockpileLite::ContributeWithVote(data) => contribute_with_vote(program_id, accounts, ContributeWithVoteArgs { amount: data.amount })
+        StockpileLite::ContributeWithVote(data) => contribute_with_vote(program_id, accounts, ContributeWithVoteArgs { amount: data.amount }),
+        StockpileLite::AcceptParticipant() => accept_participant(program_id, accounts)
     }
 }

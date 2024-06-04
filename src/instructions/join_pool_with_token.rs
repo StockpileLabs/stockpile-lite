@@ -37,12 +37,12 @@ pub fn join_pool_with_token(
     );
     let accounts_iter = &mut accounts.iter();
 
-    let participant_account = next_account_info(accounts_iter).unwrap();
-    let pool_account = next_account_info(accounts_iter).unwrap();
+    let participant_account = next_account_info(accounts_iter)?;
+    let pool_account = next_account_info(accounts_iter)?;
     // let token_mint = next_account_info(accounts_iter).unwrap();
-    let token_account = next_account_info(accounts_iter).unwrap();
-    let payer = next_account_info(accounts_iter).unwrap();
-    let system_program = next_account_info(accounts_iter).unwrap();
+    let token_account = next_account_info(accounts_iter)?;
+    let payer = next_account_info(accounts_iter)?;
+    let system_program = next_account_info(accounts_iter)?;
 
     let mut pool = Pool::try_from_slice(&pool_account.try_borrow_mut_data()?)?;
 
@@ -56,7 +56,7 @@ pub fn join_pool_with_token(
         PoolAccess::TokenGated(info) => {
             // Unpack token account data from bytes
             let token_account_info = token_account.data.borrow();
-            let ata = Account::unpack(&token_account_info).unwrap();
+            let ata = Account::unpack(&token_account_info)?;
 
             // Validate that the payer owns the token account
             assert_eq!(

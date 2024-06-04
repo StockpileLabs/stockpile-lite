@@ -34,10 +34,10 @@ pub fn join_pool(
     );
     let accounts_iter = &mut accounts.iter();
 
-    let participant_account = next_account_info(accounts_iter).unwrap();
-    let pool_account = next_account_info(accounts_iter).unwrap();
-    let payer = next_account_info(accounts_iter).unwrap();
-    let system_program = next_account_info(accounts_iter).unwrap();
+    let participant_account = next_account_info(accounts_iter)?;
+    let pool_account = next_account_info(accounts_iter)?;
+    let payer = next_account_info(accounts_iter)?;
+    let system_program = next_account_info(accounts_iter)?;
 
     let mut pool = Pool::try_from_slice(&pool_account.try_borrow_mut_data()?)?;
 
@@ -65,7 +65,6 @@ pub fn join_pool(
                     Participant::SEED_PREFIX.as_bytes(),
                     pool_account.key.as_ref(),
                     &pool.participant_index.to_le_bytes(),
-                    payer.key.as_ref(),
                     &[participant_info.bump],
                 ]],
             )?;
@@ -78,7 +77,6 @@ pub fn join_pool(
             pool.participant_index += 1;
             pool.serialize(&mut &mut pool_account.data.borrow_mut()[..])?
         },
-        // TODO: Create account and prompt approval from an admin
         PoolAccess::Manual => {
             // Create participant account
             invoke_signed(
@@ -96,7 +94,8 @@ pub fn join_pool(
                 ],
                 &[&[
                     Participant::SEED_PREFIX.as_bytes(),
-                    payer.key.as_ref(),
+                    pool_account.key.as_ref(),
+                    &pool.participant_index.to_le_bytes(),
                     &[participant_info.bump],
                 ]],
             )?;
