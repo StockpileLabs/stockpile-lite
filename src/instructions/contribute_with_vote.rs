@@ -8,6 +8,9 @@ use solana_program::{
     rent::Rent,
     system_instruction,
     sysvar::Sysvar,
+    program_error::ProgramError,
+    instruction::Instruction,
+    instruction::AccountMeta,
     msg
 };
 
@@ -35,7 +38,7 @@ This code fucking sucks and I'll probably be refactoring later
 pub fn contribute_with_vote(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    args: ContributeWithVoteArgs
+    args: ContributeWithVoteArgs,
 ) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
 
@@ -47,10 +50,17 @@ pub fn contribute_with_vote(
     // This account will not recieve the tokens directly, only its authority
     let target_vault = next_account_info(accounts_iter)?;
     let vault_authority_token_account = next_account_info(accounts_iter)?;
+    // This needs to be an optional account, if relayer isn't specified, don't include it
+    let relayer_key = next_account_info(accounts_iter)?;
     let payer = next_account_info(accounts_iter)?;
     let payer_token_account = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
     let token_program = next_account_info(accounts_iter)?;
+
+    assert!(
+        payer.is_signer, 
+        "Payer must be the signer."
+    );
 
     // Create a vote ticket from args
     let ticket = VoteTicket::new(
@@ -66,16 +76,6 @@ pub fn contribute_with_vote(
     // Deserialize payer ATA
     let token_account_info = payer_token_account.data.borrow();
     let ata = Account::unpack(&token_account_info)?;
-
-    // Get rent minimum for a new vote table
-    let rent_minimum = (Rent::get()?).minimum_balance(VoteTable::SPACE);
-
-    // TODO: Sybil check should happen here, do a match against sybil strategy
-    match pool.sybil_strategy {
-        SybilStrategy::None => msg!("No sybil strategy, skipping checks..."),
-        SybilStrategy::Civic => msg!("Civic strategy...")
-    }
-    // ^^ Actually do something here besides log and eat hot chip
 
     // Validation checks
     assert_eq!(
@@ -97,6 +97,9 @@ pub fn contribute_with_vote(
     );
 
     pool.is_active().unwrap();
+
+    // Get rent minimum for a new vote table
+    let rent_minimum = (Rent::get()?).minimum_balance(VoteTable::SPACE);
 
     // Check if full, respond accordingly
     match vote_table.clone().is_full().unwrap() {
@@ -168,8 +171,49 @@ pub fn contribute_with_vote(
             vote_table.add_entry(ticket).unwrap();
         }
     }
-    
+
     vote_table.serialize(&mut &mut vote_table_account.data.borrow_mut()[..])?;
+
+    // TODO: Sybil check should happen here, do a match against sybil strategy
+    match pool.sybil_strategy {
+        SybilStrategy::None => msg!("No sybil strategy, skipping checks..."),
+        SybilStrategy::Relayer(signers) => {
+            if relayer_key.is_signer && signers.contains(relayer_key.key) {
+                return Ok(())
+            } else {
+                return Err(ProgramError::BorshIoError("Relayer must sign if strategy is set to `relayer`".to_string()))
+            }
+        },
+        SybilStrategy::Custom(strategy) => {
+            let remaining_accounts = &accounts[14..]; //14
+
+            let mut account_metas: Vec<AccountMeta> = remaining_accounts
+                .iter()
+                .map(|acc| AccountMeta::new(*acc.key, false))
+                .collect();
+
+            account_metas.extend([
+                AccountMeta::new(*payer.key, true),
+                AccountMeta::new(*system_program.key, false)
+            ]);
+            
+            // Deserialize instruction
+            let ix = Instruction::new_with_bytes(
+                strategy.program_id, 
+                &strategy.data, 
+                account_metas
+            );
+
+            // Invoke the instruction
+            invoke(
+                &ix, 
+                // Concat the current payer and their token account
+                remaining_accounts
+            )?;
+
+            return Ok(())
+        }
+    }
 
     // Deserialize recipient ATA
     let target_token_account_info = vault_authority_token_account.data.borrow();

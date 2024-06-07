@@ -31,6 +31,11 @@ pub fn create_vault(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
+    assert!(
+        payer.is_signer, 
+        "Payer must be the signer."
+    );
+
     let rent_minimum = (Rent::get()?).minimum_balance(Vault::SPACE);
 
     invoke_signed(

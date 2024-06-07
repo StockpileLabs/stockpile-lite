@@ -33,7 +33,7 @@ impl Pool {
     + 1                                          // Enum
     + 1                                          // u8
     + 1                                          // u8
-    + 128;                                       // Padding
+    + 256;                                       // Padding (Custom Sybil Impl)
 
     pub fn new(
         name: String, 
@@ -120,14 +120,27 @@ pub struct TokenGateInfo {
     pub minimum_balance: u64
 }
 
+// SYBIL STRATEGIES
+// 1. None - Performs zero checks on a contributor, this is the default option
+// 2. Civic - Runs a Civic Gateway check on the user & requires them to have a pass
+// 3. Relayer - Requires signing by specified keys (usually via an API endpoint)
+// 4. Custom - Add a serialized ix, and perform the check via your own on-chain program.
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
 pub enum SybilStrategy {
     None,
-    Civic
+    Relayer(Vec<Pubkey>),
+    Custom(CustomStrategy)
 }
 
 impl Default for SybilStrategy {
     fn default() -> Self {
         SybilStrategy::None
     }
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+pub struct CustomStrategy {
+    pub program_id: Pubkey,
+    pub accounts: Vec<Pubkey>,
+    pub data: Vec<u8>
 }

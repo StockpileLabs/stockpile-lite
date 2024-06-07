@@ -33,8 +33,18 @@ pub fn accept_participant(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
+    assert!(
+        payer.is_signer, 
+        "Payer must be the signer."
+    );
+
     let mut pool = Pool::try_from_slice(&pool_account.try_borrow_mut_data()?)?;
     let mut participant_info = Participant::try_from_slice(&participant_account.try_borrow_mut_data()?)?;
+
+    assert!(
+        pool.admins.contains(payer.key),
+        "Payer must be an admin on this pool to accept."
+    );
 
     let rent_minimum = (Rent::get()?).minimum_balance(VoteTable::SPACE);
 

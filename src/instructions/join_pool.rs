@@ -44,6 +44,11 @@ pub fn join_pool(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
+    assert!(
+        payer.is_signer, 
+        "Payer must be the signer."
+    );
+
     let mut pool = Pool::try_from_slice(&pool_account.try_borrow_mut_data()?)?;
 
     let rent_minimum = (Rent::get()?).minimum_balance(Participant::SPACE);
