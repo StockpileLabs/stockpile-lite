@@ -1,0 +1,869 @@
+{
+  "version": "0.1.0",
+  "name": "stockpile_lite",
+  "instructions": [
+    {
+      "name": "CreatePool",
+      "accounts": [
+        {
+          "name": "poolAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master account for a QF round"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Fee payer/Initializer"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System Program"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "createPoolArgs",
+          "type": {
+            "defined": "CreatePoolArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 0
+      }
+    },
+    {
+      "name": "CreateVault",
+      "accounts": [
+        {
+          "name": "vaultAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master account for a vault. This is a proxy for a beneficiary"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Fee payer/Initializer"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System Program"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "createVaultArgs",
+          "type": {
+            "defined": "CreateVaultArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 1
+      }
+    },
+    {
+      "name": "JoinPool",
+      "accounts": [
+        {
+          "name": "participantAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account denoting a participant, tied to both a pool and a vault"
+          ]
+        },
+        {
+          "name": "poolAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master account for a QF round"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Fee payer/Initializer"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System Program"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "joinPoolArgs",
+          "type": {
+            "defined": "JoinPoolArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 2
+      }
+    },
+    {
+      "name": "Refresh",
+      "accounts": [],
+      "args": [
+        {
+          "name": "refreshArgs",
+          "type": {
+            "defined": "RefreshArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 3
+      }
+    },
+    {
+      "name": "ContributeWithVote",
+      "accounts": [
+        {
+          "name": "participantAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account denoting a participant, tied to both a pool and a vault"
+          ]
+        },
+        {
+          "name": "poolAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master account for a QF round"
+          ]
+        },
+        {
+          "name": "voteTableAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Current vote table for the participant"
+          ]
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Mint account for the pool"
+          ]
+        },
+        {
+          "name": "targetVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master account for the target vault"
+          ]
+        },
+        {
+          "name": "vaultAuthorityTokenAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Token account for the vault's authority key"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Fee payer"
+          ]
+        },
+        {
+          "name": "payerTokenAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Fee payer's token account"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System Program"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token Program"
+          ]
+        },
+        {
+          "name": "nextVoteTableAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Derived key for the next vote table, if the current one is full."
+          ]
+        },
+        {
+          "name": "relayerKey",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": true,
+          "docs": [
+            "Relayer key for 'Relayer' sybil strategy, if specified"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "contributeWithVoteArgs",
+          "type": {
+            "defined": "ContributeWithVoteArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 4
+      }
+    },
+    {
+      "name": "AcceptParticipant",
+      "accounts": [
+        {
+          "name": "participantAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account denoting a participant that's being accepted"
+          ]
+        },
+        {
+          "name": "poolAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master account for a QF round"
+          ]
+        },
+        {
+          "name": "voteTableAccount",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Current vote table for the participant"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Fee payer/Initializer"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System Program"
+          ]
+        }
+      ],
+      "args": [],
+      "discriminant": {
+        "type": "u8",
+        "value": 5
+      }
+    },
+    {
+      "name": "CreatePool",
+      "accounts": [],
+      "args": [
+        {
+          "name": "createPoolArgs",
+          "type": {
+            "defined": "CreatePoolArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 0
+      }
+    },
+    {
+      "name": "CreateVault",
+      "accounts": [],
+      "args": [
+        {
+          "name": "createVaultArgs",
+          "type": {
+            "defined": "CreateVaultArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 1
+      }
+    },
+    {
+      "name": "JoinPool",
+      "accounts": [],
+      "args": [
+        {
+          "name": "joinPoolArgs",
+          "type": {
+            "defined": "JoinPoolArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 2
+      }
+    },
+    {
+      "name": "Refresh",
+      "accounts": [],
+      "args": [
+        {
+          "name": "refreshArgs",
+          "type": {
+            "defined": "RefreshArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 3
+      }
+    },
+    {
+      "name": "ContributeWithVote",
+      "accounts": [],
+      "args": [
+        {
+          "name": "contributeWithVoteArgs",
+          "type": {
+            "defined": "ContributeWithVoteArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 4
+      }
+    },
+    {
+      "name": "AcceptParticipant",
+      "accounts": [],
+      "args": [],
+      "discriminant": {
+        "type": "u8",
+        "value": 5
+      }
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Participant",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "publicKey"
+          },
+          {
+            "name": "vaultId",
+            "type": "publicKey"
+          },
+          {
+            "name": "timestamp",
+            "type": "u64"
+          },
+          {
+            "name": "tableIndex",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": "AcceptanceStatus"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "type": "u64"
+          },
+          {
+            "name": "end",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "admins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "poolState",
+            "type": {
+              "defined": "PoolState"
+            }
+          },
+          {
+            "name": "poolAccess",
+            "type": {
+              "defined": "PoolAccess"
+            }
+          },
+          {
+            "name": "sybilStrategy",
+            "type": {
+              "defined": "SybilStrategy"
+            }
+          },
+          {
+            "name": "participantIndex",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Vault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "vaultState",
+            "type": {
+              "defined": "VaultState"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteTable",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "publicKey"
+          },
+          {
+            "name": "participant",
+            "type": "publicKey"
+          },
+          {
+            "name": "table",
+            "type": {
+              "bTreeMap": [
+                "u8",
+                {
+                  "defined": "VoteTicket"
+                }
+              ]
+            }
+          },
+          {
+            "name": "index",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "ContributeWithVoteArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "nextBump",
+            "type": {
+              "option": "u8"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreatePoolArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": {
+              "defined": "Pool"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreateVaultArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": {
+              "defined": "Vault"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "JoinPoolArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "participant",
+            "type": {
+              "defined": "Participant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "JoinPoolWithTokenArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "participant",
+            "type": {
+              "defined": "Participant"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RefreshArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": {
+              "defined": "Pool"
+            }
+          },
+          {
+            "name": "participants",
+            "type": {
+              "vec": {
+                "defined": "Participant"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenGateInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "minimumBalance",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CustomStrategy",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "programId",
+            "type": "publicKey"
+          },
+          {
+            "name": "accounts",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "data",
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteTicket",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "voter",
+            "type": "publicKey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "u64"
+          },
+          {
+            "name": "voteStatus",
+            "type": {
+              "defined": "VoteStatus"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AcceptanceStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Accepted"
+          },
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Denied"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PendingStart"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Distributed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolAccess",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Manual"
+          },
+          {
+            "name": "TokenGated",
+            "fields": [
+              {
+                "defined": "TokenGateInfo"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "SybilStrategy",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Relayer",
+            "fields": [
+              {
+                "vec": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "Custom",
+            "fields": [
+              {
+                "defined": "CustomStrategy"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Deactivated"
+          },
+          {
+            "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Valid"
+          },
+          {
+            "name": "Invalid"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 0,
+      "name": "DefaultError",
+      "msg": "I'm too lazy to write errors"
+    },
+    {
+      "code": 1,
+      "name": "PendingStart",
+      "msg": "Pool is pending start"
+    },
+    {
+      "code": 2,
+      "name": "PoolDistributed",
+      "msg": "Pool funds have been distributed"
+    },
+    {
+      "code": 3,
+      "name": "VaultClosed",
+      "msg": "This vault is closed"
+    },
+    {
+      "code": 4,
+      "name": "VaultDeactivated",
+      "msg": "This vault is deactivated"
+    }
+  ],
+  "metadata": {
+    "origin": "shank",
+    "address": "BNsqbpyoGuh66NJh5tRw6DNqy6y6X9s6LgF6yunDGRKt",
+    "binaryVersion": "0.4.2",
+    "libVersion": "0.4.2"
+  }
+}

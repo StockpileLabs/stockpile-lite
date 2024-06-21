@@ -1,10 +1,11 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use shank::ShankAccount;
 use solana_program::{sysvar::Sysvar, clock::Clock};
 use solana_program::pubkey::Pubkey;
 
 use crate::error::StockpileError;
 
-#[derive(BorshDeserialize, BorshSerialize, Debug, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, Clone, ShankAccount)]
 pub struct Pool {
     pub name: String,
     pub start: u64,

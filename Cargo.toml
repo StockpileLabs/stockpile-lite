@@ -13,6 +13,7 @@ spl-token = { version = "4.0.0", features = [ "no-entrypoint" ] }
 spl-associated-token-account = { version = "2.0.0", features = [ "no-entrypoint" ] }
 thiserror = "1.0.61"
 getrandom = { version = "0.1.14", features = ["dummy"] }
+shank = "0.4.2"
 
 [features]
 test-bpf = []

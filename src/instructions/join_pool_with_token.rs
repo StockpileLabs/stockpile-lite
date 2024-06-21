@@ -13,12 +13,12 @@ use solana_program::{
 
 use spl_token::state::Account;
 
-use crate::state::{
+use crate::{state::{
     AcceptanceStatus, 
     Participant, 
     Pool, 
     PoolAccess
-};
+}, utils::{validate_ata, validate_is_signer, validate_minimum_balance}};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct JoinPoolWithTokenArgs {
@@ -49,10 +49,7 @@ pub fn join_pool_with_token(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
-    assert!(
-        payer.is_signer, 
-        "Payer must be the signer."
-    );
+    validate_is_signer(payer)?;
 
     let mut pool = Pool::try_from_slice(&pool_account.try_borrow_mut_data()?)?;
 
@@ -64,29 +61,22 @@ pub fn join_pool_with_token(
         PoolAccess::Open => return Err(ProgramError::BorshIoError("Call join_pool to join.".to_string())),
         PoolAccess::Manual => return Err(ProgramError::BorshIoError("Call join_pool to request access".to_string())),
         PoolAccess::TokenGated(info) => {
-            // Unpack token account data from bytes
+            // Unpack token account data
             let token_account_info = token_account.data.borrow();
             let ata = Account::unpack(&token_account_info)?;
 
-            // Validate that the payer owns the token account
-            assert_eq!(
-                token_account.owner,
-                payer.key,
-                "Token Account must be owned by the payer"
-            );
-
-            // Validate that the ATA mint is correct
-            assert_eq!(
-                ata.mint,
-                info.mint,
-                "Token mint must match mint required by pool entry."
-            );
+            // Validate token account owner & mint
+            validate_ata(
+                *payer.key, 
+                info.mint, 
+                ata
+            )?;
 
             // Validate that the minimum balance is satisfied
-            assert!(
-                ata.amount >= info.minimum_balance,
-                "Must be holding minimum balance required by pool entry."
-            );
+            validate_minimum_balance(
+                info, 
+                ata
+            )?;
 
             // Create participant account
             invoke_signed(

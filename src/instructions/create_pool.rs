@@ -9,7 +9,7 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-use crate::state::Pool;
+use crate::{state::Pool, utils::validate_is_signer};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct CreatePoolArgs {
@@ -31,10 +31,7 @@ pub fn create_pool(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
-    assert!(
-        payer.is_signer, 
-        "Payer must be the signer."
-    );
+    validate_is_signer(payer)?;
 
     let rent_minimum = (Rent::get()?).minimum_balance(Pool::SPACE);
 

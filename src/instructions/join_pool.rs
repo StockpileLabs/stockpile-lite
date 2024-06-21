@@ -11,12 +11,12 @@ use solana_program::{
 };
 use solana_program::msg;
 
-use crate::state::{
+use crate::{state::{
     AcceptanceStatus, 
     Participant, 
     Pool, 
     PoolAccess
-};
+}, utils::validate_is_signer};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct JoinPoolArgs {
@@ -44,10 +44,7 @@ pub fn join_pool(
     let payer = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
 
-    assert!(
-        payer.is_signer, 
-        "Payer must be the signer."
-    );
+    validate_is_signer(payer)?;
 
     let mut pool = Pool::try_from_slice(&pool_account.try_borrow_mut_data()?)?;
 

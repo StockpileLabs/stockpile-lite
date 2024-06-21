@@ -1,12 +1,13 @@
 use std::collections::BTreeMap;
 
 use borsh::{BorshDeserialize, BorshSerialize};
+use shank::ShankAccount;
 use solana_program::{sysvar::Sysvar, clock::Clock};
 use solana_program::pubkey::Pubkey;
 
 use crate::error::StockpileError;
 
-#[derive(BorshDeserialize, BorshSerialize, Debug, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, Clone, ShankAccount)]
 pub struct VoteTable {
     pub pool: Pubkey,
     pub participant: Pubkey,

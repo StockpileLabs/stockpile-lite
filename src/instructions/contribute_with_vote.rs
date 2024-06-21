@@ -16,7 +16,7 @@ use solana_program::{
 
 use spl_token::{state::Account, instruction::transfer};
 
-use crate::state::{
+use crate::{state::{
     AcceptanceStatus, 
     Participant, 
     Pool, 
@@ -24,11 +24,12 @@ use crate::state::{
     Vault, 
     VoteTable, 
     VoteTicket
-};
+}, utils::{validate_ata, validate_indicies, validate_is_signer}};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct ContributeWithVoteArgs {
     pub amount: u64,
+    pub next_bump: Option<u8>
 }
 
 /* 
@@ -45,22 +46,20 @@ pub fn contribute_with_vote(
     let participant_account = next_account_info(accounts_iter)?;
     let pool_account = next_account_info(accounts_iter)?;
     let vote_table_account = next_account_info(accounts_iter)?;
-    let next_vote_table_account = next_account_info(accounts_iter)?;
     let mint = next_account_info(accounts_iter)?;
     // This account will not recieve the tokens directly, only its authority
     let target_vault = next_account_info(accounts_iter)?;
     let vault_authority_token_account = next_account_info(accounts_iter)?;
-    // This needs to be an optional account, if relayer isn't specified, don't include it
-    let relayer_key = next_account_info(accounts_iter)?;
     let payer = next_account_info(accounts_iter)?;
     let payer_token_account = next_account_info(accounts_iter)?;
     let system_program = next_account_info(accounts_iter)?;
     let token_program = next_account_info(accounts_iter)?;
+    // Technically required even though we may not need it
+    let next_vote_table_account = next_account_info(accounts_iter)?;
+    // Optional
+    let relayer_key = next_account_info(accounts_iter)?;
 
-    assert!(
-        payer.is_signer, 
-        "Payer must be the signer."
-    );
+    validate_is_signer(payer)?;
 
     // Create a vote ticket from args
     let ticket = VoteTicket::new(
@@ -90,11 +89,11 @@ pub fn contribute_with_vote(
         "Participant must have a valid acceptance."
     );
 
-    assert_eq!(
-        ata.mint,
-        pool.mint,
-        "Token mint must match default pool mint."
-    );
+    validate_ata(
+        *payer.key, 
+        pool.mint, 
+        ata
+    )?;
 
     pool.is_active().unwrap();
 
@@ -107,14 +106,8 @@ pub fn contribute_with_vote(
             // Increment index
             participant.table_index += 1;
 
-            let (_table_pda, bump) = Pubkey::find_program_address(
-                &[
-                    VoteTable::SEED_PREFIX.as_bytes(),
-                    participant_account.key.as_ref(),
-                    &participant.table_index.to_le_bytes()
-                ], 
-                program_id
-            );
+            // Unwrap bump passed in from client, default to 255 if none
+            let new_acc_bump = args.next_bump.unwrap_or(255);
 
             // Initialize new vote table account
             invoke_signed(
@@ -134,7 +127,7 @@ pub fn contribute_with_vote(
                     VoteTable::SEED_PREFIX.as_bytes(),
                     participant_account.key.as_ref(),
                     &participant.table_index.to_le_bytes(),
-                    &[bump],
+                    &[new_acc_bump],
                 ]],
             )?;
 
@@ -144,28 +137,17 @@ pub fn contribute_with_vote(
                 *participant_account.key, 
                 ticket, 
                 participant.table_index, 
-                bump
+                new_acc_bump
             ).unwrap();
 
             new_table.serialize(&mut &mut next_vote_table_account.data.borrow_mut()[..])?;
         }
         false => {
-            // Derived PDA w/ current index
-            let (table_pda, _bump) = Pubkey::find_program_address(
-                &[
-                    VoteTable::SEED_PREFIX.as_bytes(),
-                    participant_account.key.as_ref(),
-                    &participant.table_index.to_le_bytes()
-                ], 
-                program_id
-            );
-        
-            // Validate account matches the one passed in
-            assert_eq!(
-                table_pda,
-                *vote_table_account.key,
-                "Vote table account must be derived from the current index"
-            );
+            // Validate table account uses the correct index
+            validate_indicies(
+                participant.table_index, 
+                vote_table.index
+            )?;
 
             // Add entry to table
             vote_table.add_entry(ticket).unwrap();
@@ -174,18 +156,18 @@ pub fn contribute_with_vote(
 
     vote_table.serialize(&mut &mut vote_table_account.data.borrow_mut()[..])?;
 
-    // TODO: Sybil check should happen here, do a match against sybil strategy
     match pool.sybil_strategy {
         SybilStrategy::None => msg!("No sybil strategy, skipping checks..."),
         SybilStrategy::Relayer(signers) => {
             if relayer_key.is_signer && signers.contains(relayer_key.key) {
-                return Ok(())
+                // Mr. Gorbachev, tear down this wall.
             } else {
                 return Err(ProgramError::BorshIoError("Relayer must sign if strategy is set to `relayer`".to_string()))
             }
         },
         SybilStrategy::Custom(strategy) => {
-            let remaining_accounts = &accounts[14..]; //14
+            // 11 accounts needed in base case if it hits this leg
+            let remaining_accounts = &accounts[11..];
 
             let mut account_metas: Vec<AccountMeta> = remaining_accounts
                 .iter()
@@ -210,8 +192,6 @@ pub fn contribute_with_vote(
                 // Concat the current payer and their token account
                 remaining_accounts
             )?;
-
-            return Ok(())
         }
     }
 
@@ -224,11 +204,11 @@ pub fn contribute_with_vote(
 
     // Validate the ATA is owned by the address the vault is a proxy
     // for, not the vault itself
-    assert_eq!(
-        target_ata.owner,
-        target_vault_inner.authority,
-        "Token account must be owned by the target vault"
-    );
+    validate_ata(
+        target_vault_inner.authority, 
+        *mint.key, 
+        target_ata
+    )?;
 
     // Transfer corresponding tokens
     invoke(

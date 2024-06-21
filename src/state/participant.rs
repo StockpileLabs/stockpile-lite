@@ -1,8 +1,9 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use shank::ShankAccount;
 use solana_program::{sysvar::Sysvar, clock::Clock};
 use solana_program::pubkey::Pubkey;
 
-#[derive(BorshDeserialize, BorshSerialize, Debug, Default)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, Default, ShankAccount)]
 pub struct Participant {
     pub pool_id: Pubkey,
     pub vault_id: Pubkey,

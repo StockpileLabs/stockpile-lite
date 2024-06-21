@@ -1,9 +1,10 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use shank::ShankAccount;
 use solana_program::pubkey::Pubkey;
 
 use crate::error::StockpileError;
 
-#[derive(BorshDeserialize, BorshSerialize, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, ShankAccount)]
 pub struct Vault {
     pub name: String,
     pub authority: Pubkey,

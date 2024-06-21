@@ -1,9 +1,9 @@
 use crate::instructions::*;
-use crate::state::*;
+use shank::ShankInstruction;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, pubkey::Pubkey};
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
+#[derive(BorshSerialize, BorshDeserialize, Debug, ShankInstruction)]
 pub enum StockpileLite {
     CreatePool(CreatePoolArgs),
     CreateVault(CreateVaultArgs),
@@ -24,7 +24,7 @@ pub fn process_instruction(
         StockpileLite::CreateVault(data) => create_vault(program_id, accounts, CreateVaultArgs { vault: data.vault }),
         StockpileLite::JoinPool(data) => join_pool(program_id, accounts, JoinPoolArgs { participant: data.participant }),
         StockpileLite::Refresh(data) => refresh(program_id, accounts, RefreshArgs { pool: data.pool, participants: data.participants }),
-        StockpileLite::ContributeWithVote(data) => contribute_with_vote(program_id, accounts, ContributeWithVoteArgs { amount: data.amount }),
+        StockpileLite::ContributeWithVote(data) => contribute_with_vote(program_id, accounts, ContributeWithVoteArgs { amount: data.amount, next_bump: data.next_bump }),
         StockpileLite::AcceptParticipant() => accept_participant(program_id, accounts)
     }
 }
