@@ -27,11 +27,8 @@ jobs:
         sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
         export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
 
-    - name: Cargo List
-      run: cargo --list
-
     - name: Build Program
-      run: cargo build-bpf --verbose
+      run: cargo build --verbose
     
     - name: Run Clippy
       run: cargo clippy
