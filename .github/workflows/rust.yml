@@ -24,7 +24,7 @@ jobs:
     
     - name: Install Solana
       run: |
-        sh -c "$(curl -sSfL https://release.solana.com/1.18.12/install)"
+        sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
         export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
 
     - name: Build Program
