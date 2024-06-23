@@ -18,7 +18,11 @@ use crate::{state::{
     Participant, 
     Pool, 
     PoolAccess
-}, utils::{validate_ata, validate_is_signer, validate_minimum_balance}};
+}, utils::{
+    validate_ata, 
+    validate_is_signer, 
+    validate_minimum_balance
+}};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct JoinPoolWithTokenArgs {

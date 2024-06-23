@@ -8,22 +8,22 @@ publish = false
 [dependencies]
 borsh = "0.10.3"
 borsh-derive = "1.5.1"
-solana-program = "=1.16.1"
+solana-program = "=1.18.1"
 spl-token = { version = "4.0.0", features = [ "no-entrypoint" ] }
 spl-associated-token-account = { version = "2.0.0", features = [ "no-entrypoint" ] }
 thiserror = "1.0.61"
-getrandom = { version = "0.1.14", features = ["dummy"] }
 shank = "0.4.2"
+solana-nostd-entrypoint = "0.3.0"
 
 [features]
 test-bpf = []
 
 [dev-dependencies]
 assert_matches = "1.4.0"
-solana-logger = "=1.16.1"
-solana-program-test = "=1.16.1"
-solana-sdk = "=1.16.1"
-solana-validator = "=1.16.1"
+solana-logger = "=1.18.1"
+solana-program-test = "=1.18.1"
+solana-sdk = "=1.18.1"
+solana-validator = "=1.18.1"
 
 [lib]
 crate-type = ["cdylib", "lib"]

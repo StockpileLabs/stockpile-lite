@@ -14,17 +14,24 @@ use solana_program::{
     msg
 };
 
-use spl_token::{state::Account, instruction::transfer};
+use spl_token::{
+    state::Account, 
+    instruction::transfer
+};
 
 use crate::{state::{
-    AcceptanceStatus, 
     Participant, 
     Pool, 
     SybilStrategy, 
     Vault, 
     VoteTable, 
     VoteTicket
-}, utils::{validate_ata, validate_indicies, validate_is_signer}};
+}, utils::{
+    validate_ata, 
+    validate_indicies, 
+    validate_is_signer, 
+    validate_participant
+}};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct ContributeWithVoteArgs {
@@ -77,17 +84,10 @@ pub fn contribute_with_vote(
     let ata = Account::unpack(&token_account_info)?;
 
     // Validation checks
-    assert_eq!(
-        participant.pool_id,
-        *pool_account.key, 
-        "Participant must bound to current pool."
-    );
-
-    assert_eq!(
-        participant.status,
-        AcceptanceStatus::Accepted,
-        "Participant must have a valid acceptance."
-    );
+    validate_participant(
+        &participant, 
+        pool_account.key
+    )?;
 
     validate_ata(
         *payer.key, 

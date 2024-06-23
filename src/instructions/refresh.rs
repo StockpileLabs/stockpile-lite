@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
-    account_info::{next_account_info, AccountInfo},
+    account_info::AccountInfo,
     entrypoint::ProgramResult,
     pubkey::Pubkey,
 };
@@ -21,9 +21,9 @@ a larger pool, consider deriving the necessary accounts and calculating pool
 shares via the client. This will still be verifiable on-chain.
 */
 pub fn refresh(
-    program_id: &Pubkey,
-    accounts: &[AccountInfo],
-    args: RefreshArgs
+    _program_id: &Pubkey,
+    _accounts: &[AccountInfo],
+    _args: RefreshArgs
 ) -> ProgramResult {
 
     Ok(())

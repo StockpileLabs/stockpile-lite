@@ -7,6 +7,7 @@ use crate::error::StockpileError;
 #[derive(BorshDeserialize, BorshSerialize, Debug, ShankAccount)]
 pub struct Vault {
     pub name: String,
+    pub namespace: String,
     pub authority: Pubkey,
     pub vault_state: VaultState,
     pub bump: u8,
@@ -24,6 +25,7 @@ impl Vault {
 
     pub fn new(
         name: String,
+        namespace: String,
         authority: Pubkey,
         bump: u8
     ) -> Result<Self, StockpileError> {
@@ -33,6 +35,7 @@ impl Vault {
 
         Ok(Self {
             name,
+            namespace,
             authority,
             vault_state: VaultState::Active,
             bump,

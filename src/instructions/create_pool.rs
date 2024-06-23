@@ -9,7 +9,10 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-use crate::{state::Pool, utils::validate_is_signer};
+use crate::{
+    state::Pool, 
+    utils::validate_is_signer
+};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct CreatePoolArgs {
