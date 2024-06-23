@@ -32,3 +32,8 @@ jobs:
     
     - name: Run Clippy
       run: cargo clippy
+    
+    - name: Run Solita
+      run: |
+        cd sdk
+        yarn solita
