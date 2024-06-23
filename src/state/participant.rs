@@ -40,15 +40,10 @@ impl Participant {
     }
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug, Default)]
 pub enum AcceptanceStatus {
     Accepted,
+    #[default]
     Pending,
     Denied,
-}
-
-impl Default for AcceptanceStatus {
-    fn default() -> Self {
-        AcceptanceStatus::Pending
-    }
 }

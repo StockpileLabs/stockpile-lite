@@ -47,13 +47,13 @@ impl Pool {
         bump: u8
     ) -> Result<Self, StockpileError> {
         if name.as_bytes().len() > Self::MAX_NAME_LEN {
-            return Err(StockpileError::DefaultError.into());
+            return Err(StockpileError::DefaultError);
         }
 
         let current = Clock::get().unwrap();
         let timestamp = current.unix_timestamp as u64;
         if timestamp > start {
-            return Err(StockpileError::DefaultError.into());
+            return Err(StockpileError::DefaultError);
         }
 
         Ok(Self {
@@ -74,7 +74,7 @@ impl Pool {
         let current = Clock::get().unwrap();
         let timestamp = current.unix_timestamp as u64;
         if timestamp > self.end {
-            return Err(StockpileError::DefaultError.into());
+            return Err(StockpileError::DefaultError);
         }
 
         if timestamp > self.start {
@@ -82,37 +82,27 @@ impl Pool {
         }
 
         match self.pool_state {
-            PoolState::PendingStart => Err(StockpileError::DefaultError.into()),
+            PoolState::PendingStart => Err(StockpileError::DefaultError),
             PoolState::Active => Ok(()),
-            PoolState::Distributed => Err(StockpileError::DefaultError.into()),
+            PoolState::Distributed => Err(StockpileError::DefaultError),
         }
     }
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Clone, Debug, Default)]
 pub enum PoolState {
+    #[default]
     PendingStart,
     Active,
     Distributed,
 }
 
-impl Default for PoolState {
-    fn default() -> Self {
-        PoolState::PendingStart
-    }
-}
-
-#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug, Default)]
 pub enum PoolAccess {
     Open,
+    #[default]
     Manual,
     TokenGated(TokenGateInfo),
-}
-
-impl Default for PoolAccess {
-    fn default() -> Self {
-        PoolAccess::Manual
-    }
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug)]
@@ -126,17 +116,12 @@ pub struct TokenGateInfo {
 // 2. Civic - Runs a Civic Gateway check on the user & requires them to have a pass
 // 3. Relayer - Requires signing by specified keys (usually via an API endpoint)
 // 4. Custom - Add a serialized ix, and perform the check via your own on-chain program.
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Clone, Debug, Default)]
 pub enum SybilStrategy {
+    #[default]
     None,
     Relayer(Vec<Pubkey>),
     Custom(CustomStrategy)
-}
-
-impl Default for SybilStrategy {
-    fn default() -> Self {
-        SybilStrategy::None
-    }
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]

@@ -95,16 +95,11 @@ impl VoteTable {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug, Clone, PartialEq)]
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone, PartialEq, Default)]
 pub enum VoteStatus {
+    #[default]
     Valid,
     Invalid
-}
-
-impl Default for VoteStatus {
-    fn default() -> Self {
-        VoteStatus::Valid
-    }
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug, Clone)]

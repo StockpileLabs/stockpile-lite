@@ -49,21 +49,16 @@ impl PoolResult {
         + 4                                          // Enum (Singleton)
         + 1                                          // u8
         + 128;                                       // Padding
-        
-        return size
+
+        size
     }
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Clone, PartialEq, Debug, Default)]
 pub enum ResultState {
+    #[default]
     NotStarted,             // Calculations have not begun yet
     Pending,                // Calculations are in progress, but not all participants & tables have been accounted
     Confirmed,              // Participant calculations are confirmed, final proportions are pending
     Completed               // All calculations completed
-}
-
-impl Default for ResultState {
-    fn default() -> Self {
-        ResultState::NotStarted
-    }
 }

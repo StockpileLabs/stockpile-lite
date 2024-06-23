@@ -30,7 +30,7 @@ impl Vault {
         bump: u8
     ) -> Result<Self, StockpileError> {
         if name.as_bytes().len() > Self::MAX_NAME_LEN {
-            return Err(StockpileError::DefaultError.into());
+            return Err(StockpileError::DefaultError);
         }
 
         Ok(Self {
@@ -44,22 +44,17 @@ impl Vault {
 
     pub fn is_active(&mut self) -> Result<(), StockpileError> {
         match self.vault_state {
-            VaultState::Closed => Err(StockpileError::DefaultError.into()),
+            VaultState::Closed => Err(StockpileError::DefaultError),
             VaultState::Active => Ok(()),
-            VaultState::Deactivated => Err(StockpileError::DefaultError.into()),
+            VaultState::Deactivated => Err(StockpileError::DefaultError),
         }
     }
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+#[derive(BorshDeserialize, BorshSerialize, Clone, Debug, Default)]
 pub enum VaultState {
+    #[default]
     Active,
     Deactivated,
     Closed,
-}
-
-impl Default for VaultState {
-    fn default() -> Self {
-        VaultState::Active
-    }
 }
