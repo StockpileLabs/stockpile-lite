@@ -1,4 +1,4 @@
-name: Rust
+name: program-build
 
 on:
   push:
@@ -21,9 +21,14 @@ jobs:
       with:
         toolchain: stable
         override: true
+    
+    - name: Install Solana
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/1.18.12/install)"
+        export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
 
-    - name: Build
+    - name: Build Program
       run: cargo build-bpf --verbose
     
-    - name: Run clippy
+    - name: Run Clippy
       run: cargo clippy
